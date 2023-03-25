@@ -42,8 +42,8 @@ class NeuralNetwork():
 
         # DO NOT CHANGE PARAMETERS (Initialized to floats instead of ints)
         self.input_to_hidden_weights = np.matrix('1. 1.; 1. 1.; 1. 1.')
-        self.hidden_to_output_weights = np.matrix('1. 1. 1.')
-        self.biases = np.matrix('0.; 0.; 0.')
+        self.hidden_to_output_weights = np.matrix('1. 1. 1.') # (1 by 3 matrix)
+        self.biases = np.matrix('0.; 0.; 0.') #(3 by 1 matrix)
         self.learning_rate = .001
         self.epochs_to_train = 10
         self.training_points = [((2,1), 10), ((3,3), 21), ((4,5), 32), ((6, 6), 42)]
@@ -64,49 +64,56 @@ class NeuralNetwork():
 
         # Compute gradients
         cost = 0.5 * (y - activated_output[0,0])**2
-        output_layer_error = y - activated_output[0,0]
-        #hidden_layer_error = np.vectorize(output_layer_activation_derivative)(hidden_layer_activation) #(3 by 1 matrix)
+        output_layer_error = output_layer_activation_derivative(output[0,0]) * -1 * (y - activated_output[0,0])
+        hidden_layer_derivative = np.vectorize(rectified_linear_unit_derivative)(hidden_layer_weighted_input)
+        hidden_layer_error = np.multiply(self.hidden_to_output_weights.T,hidden_layer_derivative)  * output_layer_error #(3 by 1 matrix)
 
         #bias_gradients = output_layer_activation_derivative(self.biases)
         #bias_gradients = 1 * (np.vectorize(rectified_linear_unit_derivative)(hidden_layer_activation)) * self.hidden_to_output_weights * output_layer_activation_derivative(activated_output[0,0]) * output_layer_error
-        bias_gradients = 1 * np.multiply(self.hidden_to_output_weights.T,(np.vectorize(rectified_linear_unit_derivative)(hidden_layer_activation))) * output_layer_error * output_layer_activation_derivative(activated_output[0,0])
+        bias_gradients = hidden_layer_error
+        #bias_gradients = 1 * np.multiply(self.hidden_to_output_weights.T,(np.vectorize(rectified_linear_unit_derivative)(hidden_layer_activation))) * output_layer_error * output_layer_activation_derivative(activated_output[0,0])
         #hidden_to_output_weight_gradients = np.vectorize(rectified_linear_unit_derivative)(self.hidden_to_output_weights)
-        hidden_to_output_weight_gradients = hidden_layer_activation * output_layer_activation_derivative(output[0,0]) * output_layer_error
+        #hidden_to_output_weight_gradients = hidden_layer_activation * output_layer_activation_derivative(output[0,0]) * output_layer_error
         #input_to_hidden_weight_gradients = np.vectorize(output_layer_activation_derivative)(self.input_to_hidden_weights)
+        input_to_hidden_weight_gradients = np.dot(hidden_layer_error,input_values.T)
+        hidden_to_output_weight_gradients = hidden_layer_activation * output_layer_error
 
         # Use gradients to adjust weights and biases using gradient descent
-        new_biases = self.biases - self.learning_rate * bias_gradients
-        #new_input_to_hidden_weights = self.input_to_hidden_weights - self.learning_rate * input_to_hidden_weight_gradients
-        #new_hidden_to_output_weights = self.hidden_to_output_weights - self.learning_rate * hidden_to_output_weight_gradients
-        #self.biases = self.biases - self.learning_rate * bias_gradients
-        #self.input_to_hidden_weights = self.input_to_hidden_weights - self.learning_rate * input_to_hidden_weight_gradients
-        #self.hidden_to_output_weights = self.hidden_to_output_weights - self.learning_rate * hidden_to_output_weight_gradients
+        new_biases = self.biases - (self.learning_rate * bias_gradients)
+        new_input_to_hidden_weights = self.input_to_hidden_weights - (self.learning_rate * input_to_hidden_weight_gradients)
+        new_hidden_to_output_weights = self.hidden_to_output_weights - (self.learning_rate * hidden_to_output_weight_gradients.T)
+        
+        self.biases = new_biases
+        self.input_to_hidden_weights = new_input_to_hidden_weights
+        self.hidden_to_output_weights = new_hidden_to_output_weights
 
         #print results
-        #print("Hidden Layer Weighted Input: " + str(hidden_layer_weighted_input))
-        #print(self.hidden_to_output_weights)
-        #print("Hidden Layer Activation: " + str(hidden_layer_activation))
-        #print("Output: " + str(output))
-        #print("Activated Output: " + str(activated_output))
-        #print("Error = " + str(output_layer_error))
-        print("Hidden to Output Gradients: " + str(hidden_to_output_weight_gradients))
-        #print("Input to Hidden Gradients: " + str(input_to_hidden_weight_gradients))
-        #print("Updated Hidden to Output Weights: " + str(new_hidden_to_output_weights))
-        #print("Updated Input to Hidden Weights: " + str(new_input_to_hidden_weights))
-        #print("Bias Gradients: " + str(bias_gradients))
-        #print("Updated Biases: " + str(new_biases))
+        #print("Hidden Layer Weighted Input: " + str(hidden_layer_weighted_input) + str(hidden_layer_weighted_input.shape) + str(type(hidden_layer_weighted_input)))
+        #print("Hidden to Output Weights: " +  str(self.hidden_to_output_weights) + str(self.hidden_to_output_weights.shape) + str(type(self.hidden_to_output_weights)))
+        #print("Hidden Layer Activation: " + str(hidden_layer_activation) + str(hidden_layer_activation.shape) + str(type(hidden_layer_activation)))
+        #print("Output: " + str(output) + str(output.shape) + str( type(output) ))
+        #print("Activated Output: " + str(activated_output) + str( activated_output.shape) + str(type(activated_output)))
+        #print("Hidden Layer Derivative: " + str(hidden_layer_derivative) + str(hidden_layer_derivative.shape) + str(type(hidden_layer_derivative)))
+        #print("Hidden Layer Error = " + str(hidden_layer_error) + str(hidden_layer_error.shape) + str(type(hidden_layer_error)))
+        #print("Output Error = " + str(output_layer_error) + str(type(output_layer_error)))
+        print("Input to Hidden Gradients: " + str(input_to_hidden_weight_gradients) + str(input_to_hidden_weight_gradients.shape) + str(type(input_to_hidden_weight_gradients)))
+        print("Bias Gradients: " + str(bias_gradients) + str(bias_gradients.shape) + str(type(bias_gradients)))
+        print("Hidden to Output Gradients: " + str(hidden_to_output_weight_gradients) + str(hidden_to_output_weight_gradients.shape) + str(type(input_to_hidden_weight_gradients)))
+        print("Updated Input to Hidden Weights: " + str(new_input_to_hidden_weights) + str(new_input_to_hidden_weights.shape) + str(type(new_input_to_hidden_weights)))
+        print("Updated Biases: " + str(new_biases) + str(new_biases.shape) + str(type(new_biases)))
+        print("Updated Hidden to Output Weights: " + str(new_hidden_to_output_weights) + str(new_hidden_to_output_weights.shape) + str(type(new_hidden_to_output_weights)))
 
     def predict(self, x1, x2):
 
         input_values = np.matrix([[x1],[x2]])
 
         # Compute output for a single input(should be same as the forward propagation in training)
-        #hidden_layer_weighted_input = # TODO
-        #hidden_layer_activation = # TODO
-        #output = # TODO
-        #activated_output = # TODO
+        hidden_layer_weighted_input = np.dot(self.input_to_hidden_weights,input_values) + self.biases
+        hidden_layer_activation = np.vectorize(rectified_linear_unit)(hidden_layer_weighted_input)
+        output = np.dot(self.hidden_to_output_weights,hidden_layer_activation)
+        activated_output = np.vectorize(output_layer_activation)(output)
 
-        #return activated_output.item()
+        return activated_output.item()
 
     # Run this to train your neural network once you complete the train method
     def train_neural_network(self):
@@ -126,9 +133,11 @@ class NeuralNetwork():
                 print("Point ", point[0], point[1], " failed to be predicted correctly.")
                 return
 
-#x = NeuralNetwork()
+NeuralNetwork().train(-7,-1,-8)
 
-#x.train_neural_network()
+x = NeuralNetwork()
+
+x.train_neural_network()
 
 # UNCOMMENT THE LINE BELOW TO TEST YOUR NEURAL NETWORK
-# x.test_neural_network()
+x.test_neural_network()
