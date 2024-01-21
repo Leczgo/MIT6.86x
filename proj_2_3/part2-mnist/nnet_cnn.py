@@ -42,10 +42,17 @@ def main():
 
     #################################
     ## Model specification TODO
-    model = nn.Sequential(
-              nn.Conv2d(1, 32, (3, 3)),
-              nn.ReLU(),
-              nn.MaxPool2d((2, 2)),
+    model = nn.Sequential( #fed a 1 x (28 x 28) image
+              nn.Conv2d(1, 32, (3, 3)), # output = 32 kernels x (26 x 26) image
+              nn.ReLU(), #output = 32 kernels x (26 x 26) image
+              nn.MaxPool2d((2, 2)), #output = 32 kernels x (13 x 13) image
+              nn.Conv2d(32,64,(3,3)), # output = 64 kernels x (11 x 11) image
+              nn.ReLU(), # output = 64 kernels x (5 x 5) image
+              nn.MaxPool2d((2,2)), #output = 64 kernels x (5 x 5) image
+              nn.Flatten(), 
+              nn.Linear(1600,128),
+              nn.Dropout(0.5),
+              nn.Linear(128,10)
             )
     ##################################
 

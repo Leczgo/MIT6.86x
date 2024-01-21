@@ -18,10 +18,25 @@ class MLP(nn.Module):
     def __init__(self, input_dimension):
         super(MLP, self).__init__()
         self.flatten = Flatten()
-        # TODO initialize model layers here
+        self.layers = nn.Sequential(
+            nn.Linear(input_dimension,64),
+            nn.Linear(64,2 * num_classes),
+        )
 
     def forward(self, x):
-        xf = self.flatten(x)
+        x = self.flatten(x)
+        x = self.layers(x)
+
+        y1,y2 = x[:,:num_classes],x[:,num_classes:]
+
+        out_first_digit, out_second_digit = F.softmax(y1,dim=1),F.softmax(y2,dim=1)
+        #out_first_digit, out_second_digit = y[None,:,0],y[None,:,-1:]
+        #y = y.T
+        #out_first_digit, out_second_digit = y[:,0:-1].to(torch.int32),y[:,-1:].to(torch.int32)
+        #out_first_digit, out_second_digit = y[:,0:-1].to(torch.float32),y[:,-1:].to(torch.float32)
+        #y = y.split(1,1)
+        #out_first_digit, out_second_digit = y[0],y[1]
+
 
         # TODO use model layers to predict the two digits
 
@@ -63,3 +78,11 @@ if __name__ == '__main__':
     np.random.seed(12321)  # for reproducibility
     torch.manual_seed(12321)  # for reproducibility
     main()
+
+#a = MLP(img_rows* img_cols)
+#y1,y2 = a(torch.randn((64,img_cols * img_rows)))
+#print('y1 size:',y1.shape)
+#print(y1)
+#print(torch.argmax(y1,dim=1))
+#X_train, y_train, X_test, y_test = U.get_data(path_to_data_dir, use_mini_dataset)
+#print(np.mean(np.equal(torch.argmax(y1).numpy(),y_train[1,:64])))

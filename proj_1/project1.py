@@ -42,6 +42,12 @@ def hinge_loss_single(feature_vector, label, theta, theta_0):
 
     #raise NotImplementedError
 
+def hinge_loss_gradient_single_step(feature_vector,label,theta,theta_0):
+    if hinge_loss_single(feature_vector,label,theta,theta_0) == 0:
+        return 0
+    else:
+        return label * feature_vector
+
 
 def hinge_loss_full(feature_matrix, labels, theta, theta_0):
     """
@@ -71,7 +77,8 @@ def hinge_loss_full(feature_matrix, labels, theta, theta_0):
         y_j = labels[j]
         loss[j] = hinge_loss_single(x_j,y_j,theta,theta_0)
     
-    total_loss = np.average(loss)
+    total_loss = np.sum(loss)
+    #total_loss = np.avg(loss)
     return total_loss
     #raise NotImplementedError
 
@@ -426,3 +433,15 @@ def accuracy(preds, targets):
     returns the percentage and number of correct predictions.
     """
     return (preds == targets).mean()
+
+def max_margin(labels,feature_vector,eta,T):
+    theta, theta_0 = np.zeros(feature_vector.shape[1]),0
+    for i in range(T):
+        for j in range(len(labels)):
+            gradient = hinge_loss_gradient_single_step(feature_vector[j,:],labels[j],theta,theta_0)
+            theta = theta - eta * gradient
+            theta_0 = theta_0 - eta * labels[j]
+    return (theta,theta_0)
+
+X = np.array([[0,0],[2,0],[3,0],[0,2],[2,2],[5,1],[5,2],[2,4],[4,4],[5,5]])
+Y = np.array([-1,-1,-1,-1,-1,1,1,1,1,1])
